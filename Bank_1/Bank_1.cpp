@@ -1,14 +1,88 @@
 #include <iostream>
+#include <string>
+#include <fstream>
+
 using namespace std;
+
+const string ClientInfoFileName = "ClientInfo.txt";
+
+struct stClientData {
+    string AccountNumber = "";
+    string PinCode = "";
+    string ClientName = "";
+    string ClientPhone = "";
+    int AccountBalance = 0;
+};
 
 enum enMainMenuOption {
     ShowClientList = 1,
-    AddNewClient = 2, 
+    AddNewClient = 2,
     DeleteClient = 3,
     UpdateClientInfo = 4,
     FindClient = 5,
     Exit = 6,
 };
+
+stClientData ReadNewClient(){
+    stClientData ClientInfo;
+    cout << "****************************\n";
+    cout << "Enter Account Number ? ";
+    cin.ignore(1, '\n');
+    getline(cin, ClientInfo.AccountNumber);
+    cout << "Enter Pincode ? ";
+    getline(cin, ClientInfo.PinCode);
+    cout << "Enter Client Name ? ";
+    getline(cin, ClientInfo.ClientName);
+    cout << "Enter Client Phone ? ";
+    getline(cin, ClientInfo.ClientPhone);
+    cout << "Enter Account Balance ? ";
+    cin >> ClientInfo.AccountBalance;
+    cout << "****************************\n";
+    return ClientInfo;
+}
+
+string ConvertRecordToLine(stClientData ClientInfo, string Seperator = "#//#") {
+    string stClientRecord = "";
+    stClientRecord += ClientInfo.AccountNumber + Seperator;
+    stClientRecord += ClientInfo.PinCode + Seperator;
+    stClientRecord += ClientInfo.ClientName + Seperator;
+    stClientRecord += ClientInfo.ClientPhone + Seperator;
+    stClientRecord += to_string(ClientInfo.AccountBalance);
+    return stClientRecord;
+}
+
+void AddDataLineToFile(string FileName, string strDataLine) {
+    fstream MyFile;
+    MyFile.open(FileName, ios::app | ios::out);
+    if (MyFile.is_open()) {
+        MyFile << strDataLine << endl;
+        MyFile.close();
+    }
+}
+
+void AddNewClientHeader() {
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Add New Clients Screen \n";
+    cout << "------------------------------------------\n\n";
+    cout << "Adding New Client: \n";
+}
+
+void AddNewClientFunction(){
+    stClientData ClientData = ReadNewClient();
+    AddDataLineToFile(ClientInfoFileName, ConvertRecordToLine(ClientData));
+}
+
+void AddNewClients() {
+    char AddMore = 'Y';
+    do
+    {
+        AddNewClientFunction();
+        cout << "Client Added Successfully, do you want to add more clients ? (Y/N) ? ";
+        cin >> AddMore;
+        cout << "\n";
+    } while (toupper(AddMore) == 'Y');
+
+}
 
 enMainMenuOption ReadUserChoice() {
     short UserChoice = 0;
@@ -45,7 +119,6 @@ void ShowMenuScreen() {
         cout << "====================================================\n";
 }
 
-
 void ExitProgram() {
     cout << "\n------------------------------------------\n";
     cout << "\t     Program Ends :-) \n";
@@ -53,13 +126,14 @@ void ExitProgram() {
     system("pause");
 }
 
-
 void HandleUserChoice(enMainMenuOption UserMenuChoice){
     switch (UserMenuChoice)
     {
     case enMainMenuOption::ShowClientList:
         break;
     case enMainMenuOption::AddNewClient:
+        AddNewClientHeader();
+        AddNewClients();
         break;
     case enMainMenuOption::DeleteClient:
         break;
@@ -81,12 +155,16 @@ void ResetScreen() {
 
 
 void StartProgram() {
-    ShowMenuScreen();
     enMainMenuOption UserChoice;
 
-    UserChoice = ReadUserChoice();
-    ResetScreen();
-    HandleUserChoice(UserChoice);
+    do
+    {
+        ResetScreen();
+        ShowMenuScreen();
+        UserChoice = ReadUserChoice();
+        ResetScreen();
+        HandleUserChoice(UserChoice);
+    } while (UserChoice != enMainMenuOption::Exit);
 }
 
 
