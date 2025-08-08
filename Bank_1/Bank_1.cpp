@@ -46,12 +46,47 @@ void ShowMenuScreen() {
 }
 
 
+void ExitProgram() {
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Program Ends :-) \n";
+    cout << "------------------------------------------\n\n";
+    system("pause");
+}
+
+
+void HandleUserChoice(enMainMenuOption UserMenuChoice){
+    switch (UserMenuChoice)
+    {
+    case enMainMenuOption::ShowClientList:
+        break;
+    case enMainMenuOption::AddNewClient:
+        break;
+    case enMainMenuOption::DeleteClient:
+        break;
+    case enMainMenuOption::UpdateClientInfo:
+        break;
+    case enMainMenuOption::FindClient:
+        break;
+    case enMainMenuOption::Exit:
+        ExitProgram();
+        break;
+    
+    }
+}
+
+void ResetScreen() {
+    system("Color 0F");
+    system("cls");
+}
+
+
 void StartProgram() {
     ShowMenuScreen();
     enMainMenuOption UserChoice;
 
     UserChoice = ReadUserChoice();
-    system("Color 0F");
+    ResetScreen();
+    HandleUserChoice(UserChoice);
 }
 
 
