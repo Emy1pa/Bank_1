@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <vector>
+#include <iomanip>
 
 using namespace std;
 
@@ -49,6 +51,85 @@ string ConvertRecordToLine(stClientData ClientInfo, string Seperator = "#//#") {
     stClientRecord += ClientInfo.ClientPhone + Seperator;
     stClientRecord += to_string(ClientInfo.AccountBalance);
     return stClientRecord;
+}
+
+vector <string> SplitString(string S1, string Seperator){
+    short pos = 0;
+    vector <string> vClient;
+    string sWord = "";
+    while((pos = S1.find(Seperator)) != std::string::npos){
+        sWord = S1.substr(0, pos);
+        if (sWord != "") {
+            vClient.push_back(sWord);
+        }
+        S1.erase(0, pos + Seperator.length());
+    }
+    if (S1 != "") {
+        vClient.push_back(S1);
+    }
+    return vClient;
+}
+
+stClientData ConvertLineToRecord(string Line, string Seperator = "#//#") {
+    stClientData ClientInfo;
+    vector <string> vClientData;
+    vClientData = SplitString(Line, Seperator);
+    ClientInfo.AccountNumber = vClientData[0];
+    ClientInfo.PinCode = vClientData[1];
+    ClientInfo.ClientName = vClientData[2];
+    ClientInfo.ClientPhone = vClientData[3];
+    ClientInfo.AccountBalance = stod(vClientData[4]);
+    return ClientInfo;
+}
+
+vector <stClientData> LoadClientsDataFromFile(string FileName) {
+    fstream MyFile;
+    vector <stClientData> vClientData;
+    MyFile.open(ClientInfoFileName, ios::in);
+    if (MyFile.is_open()) {
+        string Line;
+        stClientData ClientInfo;
+        while (getline(MyFile, Line)) {
+            ClientInfo = ConvertLineToRecord(Line);
+            vClientData.push_back(ClientInfo);
+        }
+        MyFile.close();
+    }
+    return vClientData;
+}
+void PrintClientRecord(stClientData ClientInfo){
+    cout << "| " << left << setw(15) << ClientInfo.AccountNumber;
+    cout << "| " << left << setw(10) << ClientInfo.PinCode;
+    cout << "| " << left << setw(30) << ClientInfo.ClientName;
+    cout << "| " << left << setw(12) << ClientInfo.ClientPhone;
+    cout << "| " << left << setw(12) << ClientInfo.AccountBalance;
+}
+
+void PrintAllClientsData(vector <stClientData> vClientData){
+    cout << "\n\t\t\t\t\t Client List (" << vClientData.size() << ") Client(s).";
+    cout << "\n---------------------------------------------------------";
+    cout << "-------------------------------------------\n" << endl;
+    cout << "| " << left << setw(15) << "Account Number";
+    cout << "| " << left << setw(10) << "Pin Code ";
+    cout << "| " << left << setw(30) << "Client Name";
+    cout << "| " << left << setw(12) << "Phone ";
+    cout << "| " << left << setw(12) << "Balance ";
+    cout << "\n---------------------------------------------------------";
+    cout << "-------------------------------------------\n" << endl;
+
+    for(stClientData &Client: vClientData){
+        PrintClientRecord(Client);
+        cout << endl;
+    }
+    cout << "\n---------------------------------------------------------";
+    cout << "-------------------------------------------\n" << endl;
+    system("pause");
+
+}
+
+void DisplayAllUsers(){
+    vector <stClientData> ClientData = LoadClientsDataFromFile(ClientInfoFileName);
+    PrintAllClientsData(ClientData);
 }
 
 void AddDataLineToFile(string FileName, string strDataLine) {
@@ -130,6 +211,7 @@ void HandleUserChoice(enMainMenuOption UserMenuChoice){
     switch (UserMenuChoice)
     {
     case enMainMenuOption::ShowClientList:
+        DisplayAllUsers();
         break;
     case enMainMenuOption::AddNewClient:
         AddNewClientHeader();
@@ -153,7 +235,6 @@ void ResetScreen() {
     system("cls");
 }
 
-
 void StartProgram() {
     enMainMenuOption UserChoice;
 
@@ -166,6 +247,7 @@ void StartProgram() {
         HandleUserChoice(UserChoice);
     } while (UserChoice != enMainMenuOption::Exit);
 }
+
 
 
 int main()
