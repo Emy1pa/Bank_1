@@ -97,6 +97,7 @@ vector <stClientData> LoadClientsDataFromFile(string FileName) {
     }
     return vClientData;
 }
+
 void PrintClientRecord(stClientData ClientInfo){
     cout << "| " << left << setw(15) << ClientInfo.AccountNumber;
     cout << "| " << left << setw(10) << ClientInfo.PinCode;
@@ -165,6 +166,53 @@ void AddNewClients() {
 
 }
 
+void FindClientHeader() {
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Find Client Screen \n";
+    cout << "------------------------------------------\n\n";
+}
+
+void PrintOneClientRecord(stClientData ClientInfo){
+    cout << "\n\nThe following is the extracted client record: \n\n";
+    cout << "Account Number  : " << ClientInfo.AccountNumber << endl;
+    cout << "Pincode         : " << ClientInfo.PinCode << endl;
+    cout << "Client Name     : " << ClientInfo.ClientName << endl;
+    cout << "Client Info     : " << ClientInfo.PinCode << endl;
+    cout << "Account Balance : " << ClientInfo.AccountBalance << endl << endl;
+}
+
+bool FindClientByAccountNumber(string AccountNumber, stClientData &ClientInfo){
+    vector <stClientData> vClients = LoadClientsDataFromFile(ClientInfoFileName);
+    for (stClientData C : vClients) {
+        if(C.AccountNumber == AccountNumber){
+            ClientInfo = C;
+            return true;
+        }
+    }
+    return false;
+}
+
+string ReadClientAccountNumber() {
+    string AccountNumber = "";
+    cout << "\nPlease enter Account Number ? ";
+    cin >> AccountNumber;
+    return AccountNumber;
+}
+
+void PrintClientFindResult() {
+    FindClientHeader();
+    stClientData Client;
+    string AccountNumber = ReadClientAccountNumber();
+    if (FindClientByAccountNumber(AccountNumber, Client)) {
+        PrintOneClientRecord(Client);
+        system("pause");
+    }
+    else {
+        cout << "\nClient with Account Number (" << AccountNumber << ") is NOT Found!\n";
+    }
+    system("pause");
+}
+
 enMainMenuOption ReadUserChoice() {
     short UserChoice = 0;
     while (true) {
@@ -222,6 +270,7 @@ void HandleUserChoice(enMainMenuOption UserMenuChoice){
     case enMainMenuOption::UpdateClientInfo:
         break;
     case enMainMenuOption::FindClient:
+        PrintClientFindResult();
         break;
     case enMainMenuOption::Exit:
         ExitProgram();
