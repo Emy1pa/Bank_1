@@ -14,6 +14,7 @@ struct stClientData {
     string ClientName = "";
     string ClientPhone = "";
     int AccountBalance = 0;
+    bool MarkForDelete = false;
 };
 
 enum enMainMenuOption {
@@ -181,8 +182,8 @@ void PrintOneClientRecord(stClientData ClientInfo){
     cout << "Account Balance : " << ClientInfo.AccountBalance << endl << endl;
 }
 
-bool FindClientByAccountNumber(string AccountNumber, stClientData &ClientInfo){
-    vector <stClientData> vClients = LoadClientsDataFromFile(ClientInfoFileName);
+bool FindClientByAccountNumber(string AccountNumber, vector <stClientData> &vClients, stClientData &ClientInfo){
+    vClients = LoadClientsDataFromFile(ClientInfoFileName);
     for (stClientData C : vClients) {
         if(C.AccountNumber == AccountNumber){
             ClientInfo = C;
@@ -202,8 +203,9 @@ string ReadClientAccountNumber() {
 void PrintClientFindResult() {
     FindClientHeader();
     stClientData Client;
+    vector <stClientData> vClients;
     string AccountNumber = ReadClientAccountNumber();
-    if (FindClientByAccountNumber(AccountNumber, Client)) {
+    if (FindClientByAccountNumber(AccountNumber, vClients, Client)) {
         PrintOneClientRecord(Client);
         system("pause");
     }
@@ -213,6 +215,71 @@ void PrintClientFindResult() {
     system("pause");
 }
 
+void DeleteClientScreen(){
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Delete Client Screen \n";
+    cout << "------------------------------------------\n\n";
+}
+
+bool MarkClientForDeletion(string AccountNumber, vector <stClientData> &vClients){
+    for (stClientData& C : vClients) {
+        if (C.AccountNumber == AccountNumber) {
+            C.MarkForDelete = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+vector <stClientData> SaveClientsDataToFile(string FileName, vector <stClientData> vClients){
+    fstream MyFile;
+    MyFile.open(FileName, ios::out);
+    string DataLine;
+    if (MyFile.is_open()) {
+        for (stClientData &C: vClients )
+        {
+            if (C.MarkForDelete == false) {
+                DataLine = ConvertRecordToLine(C);
+                MyFile << DataLine << endl;
+            }
+        }
+        MyFile.close();
+    }
+    return vClients;
+}
+
+bool DeleteClientByAccountNumber(string AccountNumber, vector <stClientData> &vClients){
+    stClientData Client;
+    char Answer = 'n';
+    if (FindClientByAccountNumber(AccountNumber, vClients, Client)) {
+        PrintOneClientRecord(Client);
+        cout << "\n\nAre you sure you want delete client ? (Y/N) ? ";
+        cin >> Answer;
+        if (toupper(Answer) == 'Y') {
+            MarkClientForDeletion(AccountNumber, vClients);
+            SaveClientsDataToFile(ClientInfoFileName, vClients);
+
+            vClients = LoadClientsDataFromFile(ClientInfoFileName);
+            cout << "\n\nClient Deleted Successfully. \n";
+            system("pause");
+            return true;
+        }
+        
+    }
+    else
+    {
+        cout << "\nClient with Account Number (" << AccountNumber << ") is NOT Found!\n\n";
+        system("pause");
+        return false;
+    }
+}
+
+void DeleteClientRecord() {
+    DeleteClientScreen();
+    string AccountNumber = ReadClientAccountNumber();
+    vector <stClientData> vClients = LoadClientsDataFromFile(ClientInfoFileName);
+    DeleteClientByAccountNumber(AccountNumber, vClients);
+}
 enMainMenuOption ReadUserChoice() {
     short UserChoice = 0;
     while (true) {
@@ -256,6 +323,7 @@ void ExitProgram() {
 }
 
 void HandleUserChoice(enMainMenuOption UserMenuChoice){
+
     switch (UserMenuChoice)
     {
     case enMainMenuOption::ShowClientList:
@@ -266,6 +334,7 @@ void HandleUserChoice(enMainMenuOption UserMenuChoice){
         AddNewClients();
         break;
     case enMainMenuOption::DeleteClient:
+        DeleteClientRecord();
         break;
     case enMainMenuOption::UpdateClientInfo:
         break;
