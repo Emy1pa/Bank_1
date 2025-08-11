@@ -26,24 +26,6 @@ enum enMainMenuOption {
     Exit = 6,
 };
 
-stClientData ReadNewClient(){
-    stClientData ClientInfo;
-    cout << "****************************\n";
-    cout << "Enter Account Number ? ";
-    cin.ignore(1, '\n');
-    getline(cin, ClientInfo.AccountNumber);
-    cout << "Enter Pincode ? ";
-    getline(cin, ClientInfo.PinCode);
-    cout << "Enter Client Name ? ";
-    getline(cin, ClientInfo.ClientName);
-    cout << "Enter Client Phone ? ";
-    getline(cin, ClientInfo.ClientPhone);
-    cout << "Enter Account Balance ? ";
-    cin >> ClientInfo.AccountBalance;
-    cout << "****************************\n";
-    return ClientInfo;
-}
-
 string ConvertRecordToLine(stClientData ClientInfo, string Seperator = "#//#") {
     string stClientRecord = "";
     stClientRecord += ClientInfo.AccountNumber + Seperator;
@@ -99,6 +81,36 @@ vector <stClientData> LoadClientsDataFromFile(string FileName) {
     return vClientData;
 }
 
+stClientData ReadNewClient() {
+    vector <stClientData> vClients = LoadClientsDataFromFile(ClientInfoFileName);
+    stClientData ClientInfo;
+    cout << "****************************\n";
+    cout << "Enter Account Number ? ";
+    cin.ignore(1, '\n');
+    getline(cin, ClientInfo.AccountNumber);
+    do
+    {
+        for (stClientData& C : vClients) {
+            if (ClientInfo.AccountNumber == C.AccountNumber) {
+                cout << "Client with [" << ClientInfo.AccountNumber << "] already exists, enter another Account Number ? ";
+                cin >> ClientInfo.AccountNumber;
+            }
+        }
+    } while (false);
+    cin.ignore(1, '\n');
+    cout << "Enter Pincode ? ";
+    getline(cin, ClientInfo.PinCode);
+    cout << "Enter Client Name ? ";
+    getline(cin, ClientInfo.ClientName);
+    cout << "Enter Client Phone ? ";
+    getline(cin, ClientInfo.ClientPhone);
+    cout << "Enter Account Balance ? ";
+    cin >> ClientInfo.AccountBalance;
+    cout << "****************************\n";
+    return ClientInfo;
+}
+
+
 void PrintClientRecord(stClientData ClientInfo){
     cout << "| " << left << setw(15) << ClientInfo.AccountNumber;
     cout << "| " << left << setw(10) << ClientInfo.PinCode;
@@ -151,6 +163,7 @@ void AddNewClientHeader() {
 }
 
 void AddNewClientFunction(){
+   
     stClientData ClientData = ReadNewClient();
     AddDataLineToFile(ClientInfoFileName, ConvertRecordToLine(ClientData));
 }
@@ -178,7 +191,7 @@ void PrintOneClientRecord(stClientData ClientInfo){
     cout << "Account Number  : " << ClientInfo.AccountNumber << endl;
     cout << "Pincode         : " << ClientInfo.PinCode << endl;
     cout << "Client Name     : " << ClientInfo.ClientName << endl;
-    cout << "Client Info     : " << ClientInfo.PinCode << endl;
+    cout << "Client Phone     : " << ClientInfo.PinCode << endl;
     cout << "Account Balance : " << ClientInfo.AccountBalance << endl << endl;
 }
 
@@ -280,6 +293,68 @@ void DeleteClientRecord() {
     vector <stClientData> vClients = LoadClientsDataFromFile(ClientInfoFileName);
     DeleteClientByAccountNumber(AccountNumber, vClients);
 }
+
+void UpdateClientInfoScreen() {
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Update Client Info Screen \n";
+    cout << "------------------------------------------\n\n";
+}
+
+stClientData ChangeClientRecord(string AccountNumber) {
+    stClientData Client;
+
+    Client.AccountNumber = AccountNumber;
+
+    cout << "Enter PinCode ? ";
+    getline(cin >> ws, Client.PinCode);
+    cout << "Enter Name ? ";
+    getline(cin, Client.ClientName);
+    cout << "Enter Phone ? ";
+    getline(cin, Client.ClientPhone);
+    cout << "Enter Account Balance ? ";
+    cin >> Client.AccountBalance;
+    return Client;
+}
+
+bool UpdateClientByAccountNumber(string AccountNumber, vector <stClientData>& vClients) {
+    stClientData Client;
+    char Answer = 'n';
+    if (FindClientByAccountNumber(AccountNumber, vClients, Client)) {
+        PrintOneClientRecord(Client);
+        cout << "\n\nAre you sure you want Update client ? (Y/N) ? ";
+        cin >> Answer;
+        if (toupper(Answer) == 'Y') {
+            for (stClientData& C : vClients) {
+                if (C.AccountNumber == AccountNumber) {
+                    C = ChangeClientRecord(AccountNumber);
+                    break;
+                }
+            }
+            SaveClientsDataToFile(ClientInfoFileName, vClients);
+            vClients = LoadClientsDataFromFile(ClientInfoFileName);
+            cout << "\n\n Client Updated Successfully. \n\n";
+            system("pause");
+            return true;
+        }
+        
+    }
+    else {
+        cout << "\nClient with Account Number (" << AccountNumber << ") is NOT Found!\n\n";
+        system("pause");
+        return false;
+    }
+    
+}
+
+void UpdateClientRecord() {
+    UpdateClientInfoScreen();
+    string AccountNumber = ReadClientAccountNumber();
+    vector <stClientData> vClients = LoadClientsDataFromFile(ClientInfoFileName);
+    UpdateClientByAccountNumber(AccountNumber, vClients);
+
+}
+
+
 enMainMenuOption ReadUserChoice() {
     short UserChoice = 0;
     while (true) {
@@ -337,6 +412,7 @@ void HandleUserChoice(enMainMenuOption UserMenuChoice){
         DeleteClientRecord();
         break;
     case enMainMenuOption::UpdateClientInfo:
+        UpdateClientRecord();
         break;
     case enMainMenuOption::FindClient:
         PrintClientFindResult();
