@@ -501,6 +501,13 @@ stTransactionsClient ReadDepositNumber() {
     return TransactionClient;
 }
 
+stTransactionsClient ReadWithdrawNumber() {
+    stTransactionsClient TransactionClient;
+    cout << "Please enter positive withdraw amount ? ";
+    cin >> TransactionClient.Withdraw;
+    return TransactionClient;
+}
+
 void HandleDepositBalanceTotal(string AccountNumber, stClientData &Client) {
     vector <stClientData> vClients;
     vClients = LoadClientsDataFromFile(ClientInfoFileName);
@@ -558,6 +565,80 @@ void HandleDepositAccount() {
     HandleDepositBalanceTotal(AccountNumber, Client);
 }
 
+void WithdrawScreen() {
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Withdraw Screen \n";
+    cout << "------------------------------------------\n\n";
+}
+
+void HandleWithdrawBalanceTotal(string AccountNumber, stClientData &Client){
+    vector <stClientData> vClients;
+    vClients = LoadClientsDataFromFile(ClientInfoFileName);
+    stTransactionsClient TransactionClient;
+    do
+    {
+        TransactionClient = ReadWithdrawNumber();
+    } while (TransactionClient.Withdraw < 0);
+    for (stClientData& C : vClients) {
+        if (C.AccountNumber == AccountNumber) {
+
+            if (TransactionClient.Withdraw > Client.AccountBalance) {
+                do
+                {
+                    cout << "\nAmount Exceeds the balance, you can withdraw up to: " << Client.AccountBalance << endl;
+                    cout << "\nPlease enter another amount ? ";
+                    cin >> TransactionClient.Withdraw;
+                } while (TransactionClient.Withdraw > Client.AccountBalance);
+            }
+            char Answer = 'n';
+            cout << "\nAre you sure you want to perform this transaction ? (Y/N) ? ";
+            cin >> Answer;
+            if (toupper(Answer) == 'Y') {
+            C.AccountBalance -= TransactionClient.Withdraw;
+            Client = C;
+            SaveClientsDataToFile(ClientInfoFileName, vClients);
+            vClients = LoadClientsDataFromFile(ClientInfoFileName);
+            cout << "\nDone Successfully, New Balance is [" << Client.AccountBalance << "] \n\n";
+            system("pause");
+            }
+
+            else {
+                cout << "\n";
+                system("pause");
+                
+            }
+        }
+
+    }
+    
+}
+
+void HandleWithdrawFunction() {
+    string AccountNumber;
+    vector <stClientData> vClients;
+    vClients = LoadClientsDataFromFile(ClientInfoFileName);
+    stClientData Client;
+    bool Found = false;
+    do
+    {
+        AccountNumber = ReadClientAccountNumber();
+        Found = false;
+        for (stClientData& C : vClients) {
+            if (AccountNumber == C.AccountNumber) {
+
+                Client = C;
+                Found = true;
+                break;
+            }
+        }
+        if (!Found) {
+            cout << "\nClient with [" << AccountNumber << "] does not exist.\n";
+        }
+    } while (!Found);
+    PrintOneClientRecord(Client);
+    HandleWithdrawBalanceTotal(AccountNumber, Client);
+
+}
 
 void HandleUserSubMenuChoice(enSubMenuOption UserSubMenuChoice) {
     switch (UserSubMenuChoice)
@@ -567,6 +648,8 @@ void HandleUserSubMenuChoice(enSubMenuOption UserSubMenuChoice) {
         HandleDepositAccount();
         break;
     case enSubMenuOption::enWithdraw:
+        WithdrawScreen();
+        HandleWithdrawFunction();
         break;
     case enSubMenuOption::enTotalBalances:
         break;
