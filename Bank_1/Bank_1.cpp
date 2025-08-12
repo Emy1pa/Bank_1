@@ -6,6 +6,8 @@
 
 using namespace std;
 
+void StartProgram();
+
 const string ClientInfoFileName = "ClientInfo.txt";
 
 struct stClientData {
@@ -17,13 +19,21 @@ struct stClientData {
     bool MarkForDelete = false;
 };
 
+enum enSubMenuOption {
+    enDeposit = 1,
+    enWithdraw = 2,
+    enTotalBalances = 3,
+    enMainMenu = 4,
+};
+
 enum enMainMenuOption {
     ShowClientList = 1,
     AddNewClient = 2,
     DeleteClient = 3,
     UpdateClientInfo = 4,
     FindClient = 5,
-    Exit = 6,
+    Transactions = 6,
+    Exit = 7,
 };
 
 string ConvertRecordToLine(stClientData ClientInfo, string Seperator = "#//#") {
@@ -109,7 +119,6 @@ stClientData ReadNewClient() {
     cout << "****************************\n";
     return ClientInfo;
 }
-
 
 void PrintClientRecord(stClientData ClientInfo){
     cout << "| " << left << setw(15) << ClientInfo.AccountNumber;
@@ -354,11 +363,10 @@ void UpdateClientRecord() {
 
 }
 
-
 enMainMenuOption ReadUserChoice() {
     short UserChoice = 0;
     while (true) {
-        cout << "Choose what do you want to do ? [1-6] ? ";
+        cout << "Choose what do you want to do ? [1-7] ? ";
         cin >> UserChoice;
         if (cin.fail()) {
             cin.clear();
@@ -367,9 +375,9 @@ enMainMenuOption ReadUserChoice() {
             cout << "\nInvalid input. Numbers only, please.\n";
             continue;
         }
-        if (UserChoice < 1 || UserChoice > 6) {
+        if (UserChoice < 1 || UserChoice > 7) {
             system("Color 4F");
-            cout << "\nInvalid choice. Please enter a number between 1 and 6.\n";
+            cout << "\nInvalid choice. Please enter a number between 1 and 7.\n";
             continue;
         }
         break;
@@ -377,17 +385,51 @@ enMainMenuOption ReadUserChoice() {
     return (enMainMenuOption)UserChoice;
 }
 
+enSubMenuOption ReadUserSubMenuChoice() {
+    short UserChoice = 0;
+    while (true) {
+        cout << "Choose what do you want to do ? [1-4] ? ";
+        cin >> UserChoice;
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            system("Color 4F");
+            cout << "\nInvalid input. Numbers only, please.\n";
+            continue;
+        }
+        if (UserChoice < 1 || UserChoice > 4) {
+            system("Color 4F");
+            cout << "\nInvalid choice. Please enter a number between 1 and 4.\n";
+            continue;
+        }
+        break;
+    }
+    return (enSubMenuOption)UserChoice;
+}
+
 void ShowMenuScreen() {    
         cout << "====================================================\n";
-        cout << "\t\t Main Menue Screen\n";
+        cout << "\t\t Main Menu Screen\n";
         cout << "====================================================\n";
         cout << "\t [1] Show Client List. \n";
         cout << "\t [2] Add New Client. \n";
         cout << "\t [3] Delete Client. \n";
         cout << "\t [4] Update Client Info. \n";
         cout << "\t [5] Find Client. \n";
-        cout << "\t [6] Exit. \n";
+        cout << "\t [6] Transactions. \n";
+        cout << "\t [7] Exit. \n";
         cout << "====================================================\n";
+}
+
+void ShowTransactionsMenuScreen() {
+    cout << "====================================================\n";
+    cout << "\t\t Transactions Menu Screen\n";
+    cout << "====================================================\n";
+    cout << "\t [1] Deposit. \n";
+    cout << "\t [2] Withdraw. \n";
+    cout << "\t [3] Total Balances. \n";
+    cout << "\t [4] Main Menu. \n";
+    cout << "====================================================\n";
 }
 
 void ExitProgram() {
@@ -395,6 +437,23 @@ void ExitProgram() {
     cout << "\t     Program Ends :-) \n";
     cout << "------------------------------------------\n\n";
     system("pause");
+}
+
+void ResetScreen() {
+    system("Color 0F");
+    system("cls");
+}
+
+void startTransactionMenu() {
+    enSubMenuOption UserChoice;
+    do
+    {
+        ResetScreen();
+        ShowTransactionsMenuScreen();
+        UserChoice = ReadUserSubMenuChoice();
+        ResetScreen();
+
+    } while (UserChoice != enSubMenuOption::enMainMenu);
 }
 
 void HandleUserChoice(enMainMenuOption UserMenuChoice){
@@ -417,6 +476,9 @@ void HandleUserChoice(enMainMenuOption UserMenuChoice){
     case enMainMenuOption::FindClient:
         PrintClientFindResult();
         break;
+    case enMainMenuOption::Transactions:
+        startTransactionMenu();
+        break;
     case enMainMenuOption::Exit:
         ExitProgram();
         break;
@@ -424,10 +486,24 @@ void HandleUserChoice(enMainMenuOption UserMenuChoice){
     }
 }
 
-void ResetScreen() {
-    system("Color 0F");
-    system("cls");
+
+
+void HandleUserSubMenuChoice(enSubMenuOption UserSubMenuChoice) {
+    switch (UserSubMenuChoice)
+    {
+    case enSubMenuOption::enDeposit:
+        break;
+    case enSubMenuOption::enWithdraw:
+        break;
+    case enSubMenuOption::enTotalBalances:
+        break;
+    case enSubMenuOption::enMainMenu:
+        StartProgram();
+        break;
+    }
 }
+
+
 
 void StartProgram() {
     enMainMenuOption UserChoice;
@@ -441,8 +517,6 @@ void StartProgram() {
         HandleUserChoice(UserChoice);
     } while (UserChoice != enMainMenuOption::Exit);
 }
-
-
 
 int main()
 {
