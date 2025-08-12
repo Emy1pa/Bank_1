@@ -458,7 +458,6 @@ void ResetScreen() {
     system("cls");
 }
 
-
 void HandleUserChoice(enMainMenuOption UserMenuChoice){
 
     switch (UserMenuChoice)
@@ -640,6 +639,46 @@ void HandleWithdrawFunction() {
 
 }
 
+void PrintClientBalanceRecord(stClientData ClientInfo) {
+    cout << "| " << left << setw(15) << ClientInfo.AccountNumber;
+    cout << "| " << left << setw(30) << ClientInfo.ClientName;
+    cout << "| " << left << setw(12) << ClientInfo.AccountBalance;
+}
+
+int DisplayAllBalancesOfClients(vector <stClientData> vClientData){
+    int Balance = 0;
+    for (stClientData C : vClientData) {
+        Balance += C.AccountBalance;
+    }
+    return Balance;
+}
+
+void PrintAllClientsBalanceData(vector <stClientData> vClientData) {
+    cout << "\n\t\t\t\t\t Balances List (" << vClientData.size() << ") Client(s).";
+    cout << "\n---------------------------------------------------------";
+    cout << "-------------------------------------------\n" << endl;
+    cout << "| " << left << setw(15) << "Account Number";
+    cout << "| " << left << setw(30) << "Client Name";
+    cout << "| " << left << setw(12) << "Balance ";
+    cout << "\n---------------------------------------------------------";
+    cout << "-------------------------------------------\n" << endl;
+
+    for (stClientData& Client : vClientData) {
+        PrintClientBalanceRecord(Client);
+        cout << endl;
+    }
+    cout << "\n---------------------------------------------------------";
+    cout << "-------------------------------------------\n" << endl;
+    cout << "\t\t\t\t\t Total Balances = " << DisplayAllBalancesOfClients(vClientData) << endl << endl;
+    system("pause");
+
+}
+
+void DisplayBalancesAllUsers() {
+    vector <stClientData> ClientData = LoadClientsDataFromFile(ClientInfoFileName);
+    PrintAllClientsBalanceData(ClientData);
+}
+
 void HandleUserSubMenuChoice(enSubMenuOption UserSubMenuChoice) {
     switch (UserSubMenuChoice)
     {
@@ -652,6 +691,7 @@ void HandleUserSubMenuChoice(enSubMenuOption UserSubMenuChoice) {
         HandleWithdrawFunction();
         break;
     case enSubMenuOption::enTotalBalances:
+        DisplayBalancesAllUsers();
         break;
     case enSubMenuOption::enMainMenu:
         ShowMenuScreen();
