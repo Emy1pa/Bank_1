@@ -7,8 +7,15 @@
 using namespace std;
 
 void StartProgram();
+void StartTransactionMenu();
 
 const string ClientInfoFileName = "ClientInfo.txt";
+
+struct stTransactionsClient {
+    double Deposit;
+    double Withdraw;
+    double TotalBalances;
+};
 
 struct stClientData {
     string AccountNumber = "";
@@ -67,6 +74,8 @@ stClientData ConvertLineToRecord(string Line, string Seperator = "#//#") {
     stClientData ClientInfo;
     vector <string> vClientData;
     vClientData = SplitString(Line, Seperator);
+
+
     ClientInfo.AccountNumber = vClientData[0];
     ClientInfo.PinCode = vClientData[1];
     ClientInfo.ClientName = vClientData[2];
@@ -95,19 +104,21 @@ stClientData ReadNewClient() {
     vector <stClientData> vClients = LoadClientsDataFromFile(ClientInfoFileName);
     stClientData ClientInfo;
     cout << "****************************\n";
-    cout << "Enter Account Number ? ";
-    cin.ignore(1, '\n');
-    getline(cin, ClientInfo.AccountNumber);
-    do
-    {
+    cin.ignore();
+    while (true) {
+        cout << "Enter Account Number ? ";
+        getline(cin, ClientInfo.AccountNumber);
+        bool exists = false;
+
         for (stClientData& C : vClients) {
             if (ClientInfo.AccountNumber == C.AccountNumber) {
-                cout << "Client with [" << ClientInfo.AccountNumber << "] already exists, enter another Account Number ? ";
-                cin >> ClientInfo.AccountNumber;
+                cout << "Client with [" << ClientInfo.AccountNumber << "] already exists, ";
+                exists = true;
+                break;
             }
         }
-    } while (false);
-    cin.ignore(1, '\n');
+        if (!exists) break;
+    }
     cout << "Enter Pincode ? ";
     getline(cin, ClientInfo.PinCode);
     cout << "Enter Client Name ? ";
@@ -197,11 +208,14 @@ void FindClientHeader() {
 
 void PrintOneClientRecord(stClientData ClientInfo){
     cout << "\n\nThe following is the extracted client record: \n\n";
+    cout << "------------------------------------------------\n";
     cout << "Account Number  : " << ClientInfo.AccountNumber << endl;
     cout << "Pincode         : " << ClientInfo.PinCode << endl;
     cout << "Client Name     : " << ClientInfo.ClientName << endl;
-    cout << "Client Phone     : " << ClientInfo.PinCode << endl;
-    cout << "Account Balance : " << ClientInfo.AccountBalance << endl << endl;
+    cout << "Client Phone     : " << ClientInfo.ClientPhone << endl;
+    cout << "Account Balance : " << ClientInfo.AccountBalance << endl;
+    cout << "------------------------------------------------\n\n";
+
 }
 
 bool FindClientByAccountNumber(string AccountNumber, vector <stClientData> &vClients, stClientData &ClientInfo){
@@ -444,17 +458,6 @@ void ResetScreen() {
     system("cls");
 }
 
-void startTransactionMenu() {
-    enSubMenuOption UserChoice;
-    do
-    {
-        ResetScreen();
-        ShowTransactionsMenuScreen();
-        UserChoice = ReadUserSubMenuChoice();
-        ResetScreen();
-
-    } while (UserChoice != enSubMenuOption::enMainMenu);
-}
 
 void HandleUserChoice(enMainMenuOption UserMenuChoice){
 
@@ -477,33 +480,114 @@ void HandleUserChoice(enMainMenuOption UserMenuChoice){
         PrintClientFindResult();
         break;
     case enMainMenuOption::Transactions:
-        startTransactionMenu();
+        StartTransactionMenu();
         break;
     case enMainMenuOption::Exit:
         ExitProgram();
         break;
-    
     }
 }
 
+void DepositScreen() {
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Deposit Screen \n";
+    cout << "------------------------------------------\n\n";
+}
+
+stTransactionsClient ReadDepositNumber() {
+    stTransactionsClient TransactionClient;
+    cout << "Please enter positive deposit amount ? ";
+    cin >> TransactionClient.Deposit;
+    return TransactionClient;
+}
+
+void HandleDepositBalanceTotal(string AccountNumber, stClientData &Client) {
+    vector <stClientData> vClients;
+    vClients = LoadClientsDataFromFile(ClientInfoFileName);
+    stTransactionsClient TransactionClient;
+    do
+    {
+        TransactionClient = ReadDepositNumber();
+    } while (TransactionClient.Deposit < 0);
+
+    char Answer = 'no';
+    cout << "\nAre you sure you want to perform this transaction ? (Y/N) ? ";
+    cin >> Answer;
+    cout << endl;
+    if (toupper(Answer) == 'Y') {
+        for (stClientData& C : vClients) {
+            if (C.AccountNumber == AccountNumber) {
+                C.AccountBalance += TransactionClient.Deposit ;
+                Client = C;
+            }
+        }
+    }
+    SaveClientsDataToFile(ClientInfoFileName, vClients);
+    vClients = LoadClientsDataFromFile(ClientInfoFileName);
+    cout << "Done Successfully, New Balance is [" << Client.AccountBalance << "] \n\n";
+    system("pause");
+}
+
+
+void HandleDepositAccount() {
+    string AccountNumber;
+    vector <stClientData> vClients;
+
+    vClients = LoadClientsDataFromFile(ClientInfoFileName);
+    stClientData Client;
+    bool Found = false;
+    do
+    {
+        AccountNumber = ReadClientAccountNumber();
+        Found = false;
+        for (stClientData& C : vClients) {
+            if (AccountNumber == C.AccountNumber) {
+
+                Client = C;
+                Found = true;
+                break;
+            }
+        }
+        if (!Found) {
+            cout << "Client with [" << AccountNumber << "] does not exist.\n";
+        }
+
+    } while (!Found);
+
+    PrintOneClientRecord(Client);
+    HandleDepositBalanceTotal(AccountNumber, Client);
+}
 
 
 void HandleUserSubMenuChoice(enSubMenuOption UserSubMenuChoice) {
     switch (UserSubMenuChoice)
     {
     case enSubMenuOption::enDeposit:
+        DepositScreen();
+        HandleDepositAccount();
         break;
     case enSubMenuOption::enWithdraw:
         break;
     case enSubMenuOption::enTotalBalances:
         break;
     case enSubMenuOption::enMainMenu:
-        StartProgram();
+        ShowMenuScreen();
         break;
     }
 }
 
+void StartTransactionMenu() {
+    enSubMenuOption UserChoice;
+    do
+    {
+        ResetScreen();
+        ShowTransactionsMenuScreen();
+        UserChoice = ReadUserSubMenuChoice();
+        ResetScreen();
+        HandleUserSubMenuChoice(UserChoice);
 
+    } while (UserChoice != enSubMenuOption::enMainMenu);
+}
 
 void StartProgram() {
     enMainMenuOption UserChoice;
