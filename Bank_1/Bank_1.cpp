@@ -804,16 +804,18 @@ bool CheckForExistingUser() {
     vector <stUserInfo> vUsers = LoadUsersDataFromFile(UserInfoFileName);
     stUserInfo UserInfo = ReadUserInfo();
     for (stUserInfo &U: vUsers) {
-        if (UserInfo.UserName != U.UserName || UserInfo.Password != U.Password) {
-            return false;
+        if (UserInfo.UserName == U.UserName || UserInfo.Password == U.Password) {
+            return true;
         }
     }
-    return true;
+    return false;
 }
 
 void RedirectUserToMainMenue() {
     LoginScreen();
     while (!CheckForExistingUser()) {
+        ResetScreen();
+        LoginScreen();
         cout << "\nInvalid username/Password !\n\n";
     }
     StartProgram();
