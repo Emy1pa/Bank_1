@@ -7,6 +7,9 @@ using namespace std;
 
 void StartProgram();
 void StartTransactionMenu();
+void RedirectUserToMainMenue();
+void ManageUsersMenuScreen();
+void HandleUserManagement();
 
 const string ClientInfoFileName = "ClientInfo.txt";
 const string UserInfoFileName = "Users.txt";
@@ -46,7 +49,17 @@ enum enMainMenuOption {
     UpdateClientInfo = 4,
     FindClient = 5,
     Transactions = 6,
-    Exit = 7,
+    ManageUsers = 7,
+    Logout = 8,
+};
+
+enum enUserMenuOption {
+    ShowUserList = 1,
+    AddNewUser = 2,
+    DeleteUser = 3,
+    UpdateUserInfo = 4,
+    FindUser = 5,
+    MainMenu = 6,
 };
 
 string ConvertRecordToLine(stClientData ClientInfo, string Seperator = "#//#") {
@@ -409,10 +422,32 @@ void UpdateClientRecord() {
 
 }
 
+enUserMenuOption ReadAdminUserChoice() {
+    short AdminUserChoice = 0;
+    while (true) {
+        cout << "Choose what do you want to do ? [1-6] ? ";
+        cin >> AdminUserChoice;
+        if (cin.fail()) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            system("Color 4F");
+            cout << "\nInvalid input. Numbers only, please.\n";
+            continue;
+        }
+        if (AdminUserChoice < 1 || AdminUserChoice > 6) {
+            system("Color 4F");
+            cout << "\nInvalid choice. Please enter a number between 1 and 6.\n";
+            continue;
+        }
+        break;
+    }
+    return (enUserMenuOption) AdminUserChoice;
+}
+
 enMainMenuOption ReadUserChoice() {
     short UserChoice = 0;
     while (true) {
-        cout << "Choose what do you want to do ? [1-7] ? ";
+        cout << "Choose what do you want to do ? [1-8] ? ";
         cin >> UserChoice;
         if (cin.fail()) {
             cin.clear();
@@ -421,9 +456,9 @@ enMainMenuOption ReadUserChoice() {
             cout << "\nInvalid input. Numbers only, please.\n";
             continue;
         }
-        if (UserChoice < 1 || UserChoice > 7) {
+        if (UserChoice < 1 || UserChoice > 8) {
             system("Color 4F");
-            cout << "\nInvalid choice. Please enter a number between 1 and 7.\n";
+            cout << "\nInvalid choice. Please enter a number between 1 and 8.\n";
             continue;
         }
         break;
@@ -463,9 +498,11 @@ void ShowMenuScreen() {
         cout << "\t [4] Update Client Info. \n";
         cout << "\t [5] Find Client. \n";
         cout << "\t [6] Transactions. \n";
-        cout << "\t [7] Exit. \n";
+        cout << "\t [7] Manage Users. \n";
+        cout << "\t [8] Logout. \n";
         cout << "====================================================\n";
 }
+
 
 void ShowTransactionsMenuScreen() {
     cout << "====================================================\n";
@@ -488,6 +525,26 @@ void ExitProgram() {
 void ResetScreen() {
     system("Color 0F");
     system("cls");
+}
+
+void HandleAdminUserChoice(enUserMenuOption AdminUserMenuChoice){
+    switch (AdminUserMenuChoice)
+    {
+    case enUserMenuOption::ShowUserList:
+        break;
+    case enUserMenuOption::AddNewUser:
+        break;
+    case enUserMenuOption::DeleteUser:
+        break;
+    case enUserMenuOption::UpdateUserInfo:
+        break;
+    case enUserMenuOption::FindUser:
+        break;
+    case enUserMenuOption::MainMenu:
+        StartProgram();
+        break;
+    
+    }
 }
 
 void HandleUserChoice(enMainMenuOption UserMenuChoice){
@@ -513,8 +570,11 @@ void HandleUserChoice(enMainMenuOption UserMenuChoice){
     case enMainMenuOption::Transactions:
         StartTransactionMenu();
         break;
-    case enMainMenuOption::Exit:
-        ExitProgram();
+    case enMainMenuOption::ManageUsers:
+        HandleUserManagement();
+
+    case enMainMenuOption::Logout:
+        RedirectUserToMainMenue();
         break;
     }
 }
@@ -753,7 +813,7 @@ void StartProgram() {
         UserChoice = ReadUserChoice();
         ResetScreen();
         HandleUserChoice(UserChoice);
-    } while (UserChoice != enMainMenuOption::Exit);
+    } while (UserChoice != enMainMenuOption::Logout);
 }
 
 stUserInfo ConvertUserLineToRecord(string Line, string Seperator = "#//#") {
@@ -784,7 +844,6 @@ vector <stUserInfo> LoadUsersDataFromFile(string FileName) {
     return vUserData;
 }
 
-
 void LoginScreen() {
     cout << "\n------------------------------------------\n";
     cout << "\t     Login Screen \n";
@@ -794,9 +853,11 @@ void LoginScreen() {
 stUserInfo ReadUserInfo() {
     stUserInfo UserInfo;
     cout << "Enter Username ? ";
+    cin.ignore(1, '\n');
     getline(cin, UserInfo.UserName);
     cout << "Enter Password ? ";
     getline(cin, UserInfo.Password);
+    
     return UserInfo;
 }
 
@@ -822,11 +883,25 @@ void RedirectUserToMainMenue() {
 
 }
 
+void ManageUsersMenuScreen() {
+    cout << "====================================================\n";
+    cout << "\t\t Manage Users Menu Screen\n";
+    cout << "====================================================\n";
+    cout << "\t [1] List Users. \n";
+    cout << "\t [2] Add New User. \n";
+    cout << "\t [3] Delete User. \n";
+    cout << "\t [4] Update User. \n";
+    cout << "\t [5] Find User. \n";
+    cout << "\t [6] Main Menu. \n";
+    cout << "====================================================\n";
+}
 
-
-
-
-
+void HandleUserManagement() {
+    ResetScreen();
+    ManageUsersMenuScreen();
+    enUserMenuOption HandleAdminChoice = ReadAdminUserChoice();
+    HandleAdminUserChoice(HandleAdminChoice);
+}
 
 int main()
 {
