@@ -158,6 +158,13 @@ void PrintClientRecord(stClientData ClientInfo){
     cout << "| " << left << setw(12) << ClientInfo.AccountBalance;
 }
 
+void PrintUserRecord(stUserInfo UserInfo){
+    cout << "| " << left << setw(15) << UserInfo.UserName;
+    cout << "| " << left << setw(10) << UserInfo.Password;
+    cout << "| " << left << setw(12) << UserInfo.Permission;
+
+}
+
 void PrintAllClientsData(vector <stClientData> vClientData){
     cout << "\n\t\t\t\t\t Client List (" << vClientData.size() << ") Client(s).";
     cout << "\n---------------------------------------------------------";
@@ -184,10 +191,35 @@ void PrintAllClientsData(vector <stClientData> vClientData){
 
 }
 
+void PrintAllUsersData(vector <stUserInfo> vUserData) {
+    cout << "\n\t\t\t\t\t Users List (" << vUserData.size() << ") User(s).";
+    cout << "\n---------------------------------------------------------";
+    cout << "-------------------------------------------\n" << endl;
+    cout << "| " << left << setw(15) << "Username";
+    cout << "| " << left << setw(10) << "Password ";
+    cout << "| " << left << setw(12) << "Permissions ";
+    cout << "\n---------------------------------------------------------";
+    cout << "-------------------------------------------\n" << endl;
+
+    if (vUserData.size() == 0)
+        cout << "\t\t\tNo Users Available In the System! ";
+    else
+
+        for (stUserInfo& User : vUserData) {
+            PrintUserRecord(User);
+            cout << endl;
+        }
+    cout << "\n---------------------------------------------------------";
+    cout << "-------------------------------------------\n" << endl;
+    system("pause");
+
+}
+
 void DisplayAllUsers(){
     vector <stClientData> ClientData = LoadClientsDataFromFile(ClientInfoFileName);
     PrintAllClientsData(ClientData);
 }
+
 
 void AddDataLineToFile(string FileName, string strDataLine) {
     fstream MyFile;
@@ -503,7 +535,6 @@ void ShowMenuScreen() {
         cout << "====================================================\n";
 }
 
-
 void ShowTransactionsMenuScreen() {
     cout << "====================================================\n";
     cout << "\t\t Transactions Menu Screen\n";
@@ -527,25 +558,6 @@ void ResetScreen() {
     system("cls");
 }
 
-void HandleAdminUserChoice(enUserMenuOption AdminUserMenuChoice){
-    switch (AdminUserMenuChoice)
-    {
-    case enUserMenuOption::ShowUserList:
-        break;
-    case enUserMenuOption::AddNewUser:
-        break;
-    case enUserMenuOption::DeleteUser:
-        break;
-    case enUserMenuOption::UpdateUserInfo:
-        break;
-    case enUserMenuOption::FindUser:
-        break;
-    case enUserMenuOption::MainMenu:
-        StartProgram();
-        break;
-    
-    }
-}
 
 void HandleUserChoice(enMainMenuOption UserMenuChoice){
 
@@ -553,6 +565,7 @@ void HandleUserChoice(enMainMenuOption UserMenuChoice){
     {
     case enMainMenuOption::ShowClientList:
         DisplayAllUsers();
+        
         break;
     case enMainMenuOption::AddNewClient:
         AddNewClientHeader();
@@ -896,12 +909,41 @@ void ManageUsersMenuScreen() {
     cout << "====================================================\n";
 }
 
+void DisplayAllUsersSubMenu() {
+    ResetScreen();
+    vector <stUserInfo> UserData = LoadUsersDataFromFile(UserInfoFileName);
+    PrintAllUsersData(UserData);
+    
+}
+void HandleAdminUserChoice(enUserMenuOption AdminUserMenuChoice) {
+    switch (AdminUserMenuChoice)
+    {
+    case enUserMenuOption::ShowUserList:
+        DisplayAllUsersSubMenu();
+        HandleUserManagement();
+        break;
+    case enUserMenuOption::AddNewUser:
+        break;
+    case enUserMenuOption::DeleteUser:
+        break;
+    case enUserMenuOption::UpdateUserInfo:
+        break;
+    case enUserMenuOption::FindUser:
+        break;
+    case enUserMenuOption::MainMenu:
+        StartProgram();
+        break;
+
+    }
+}
+
 void HandleUserManagement() {
     ResetScreen();
     ManageUsersMenuScreen();
     enUserMenuOption HandleAdminChoice = ReadAdminUserChoice();
     HandleAdminUserChoice(HandleAdminChoice);
 }
+
 
 int main()
 {
