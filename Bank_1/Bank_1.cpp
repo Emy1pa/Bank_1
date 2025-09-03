@@ -30,9 +30,10 @@ struct stClientData {
 };
 
 struct stUserInfo {
-    string UserName;
-    string Password;
+    string UserName = "";
+    string Password = "";
     short Permission;
+    bool FullAccess = false;
 };
 
 enum enSubMenuOption {
@@ -219,7 +220,6 @@ void DisplayAllUsers(){
     vector <stClientData> ClientData = LoadClientsDataFromFile(ClientInfoFileName);
     PrintAllClientsData(ClientData);
 }
-
 
 void AddDataLineToFile(string FileName, string strDataLine) {
     fstream MyFile;
@@ -557,7 +557,6 @@ void ResetScreen() {
     system("Color 0F");
     system("cls");
 }
-
 
 void HandleUserChoice(enMainMenuOption UserMenuChoice){
 
@@ -915,6 +914,79 @@ void DisplayAllUsersSubMenu() {
     PrintAllUsersData(UserData);
     
 }
+
+void HandleAddNewUserScreen(){
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Add New User Screen \n";
+    cout << "------------------------------------------\n";
+    cout << "Adding New User: \n";
+}
+
+stUserInfo AddNewUserFunc() {
+    vector <stUserInfo> vUsers = LoadUsersDataFromFile(UserInfoFileName);
+    stUserInfo UserInfo;
+    cout << "****************************\n";
+    cin.ignore();
+    while (true) {
+        cout << "Enter Username ? ";
+        getline(cin, UserInfo.UserName);
+        bool exists = false;
+
+        for (stUserInfo& U : vUsers) {
+            if (UserInfo.UserName == U.UserName) {
+                cout << "\nUser with [" << UserInfo.UserName << "] already exists, ";
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) break;
+    }
+    /*cout << "Enter Username ? ";
+    getline(cin, UserInfo.UserName);*/
+    cout << "Enter Password ? ";
+    getline(cin, UserInfo.Password);
+    cout << "\nDo you want to give full access? (1/0) ? ";
+    cin >> UserInfo.FullAccess;
+    if (UserInfo.FullAccess)
+        UserInfo.Permission = -1;
+    cout << "****************************\n";
+    return UserInfo;
+}
+
+string ConvertUserRecordToLine(stUserInfo UserInfo, string Seperator = "#//#") {
+    string stUserRecord = "";
+    stUserRecord += UserInfo.UserName + Seperator;
+    stUserRecord += UserInfo.Password + Seperator;
+    stUserRecord += to_string(UserInfo.Permission);
+    return stUserRecord;
+}
+
+void AddNewUserFunction() {
+
+    stUserInfo UserData = AddNewUserFunc();
+    AddDataLineToFile(UserInfoFileName, ConvertUserRecordToLine(UserData));
+}
+
+void AddNewUsers() {
+    char AddMore = 'Y';
+    do
+    {
+        AddNewUserFunction();
+        cout << "\nUser Added Successfully, do you want to add more users ? (Y/N) ? ";
+        cin >> AddMore;
+        cout << "\n\n";
+    } while (toupper(AddMore) == 'Y');
+
+}
+
+void HandleAddNewUser() {
+    ResetScreen();
+    HandleAddNewUserScreen();
+    AddNewUsers();
+    system("pause");
+    HandleUserManagement();
+}
+
 void HandleAdminUserChoice(enUserMenuOption AdminUserMenuChoice) {
     switch (AdminUserMenuChoice)
     {
@@ -923,6 +995,7 @@ void HandleAdminUserChoice(enUserMenuOption AdminUserMenuChoice) {
         HandleUserManagement();
         break;
     case enUserMenuOption::AddNewUser:
+        HandleAddNewUser();
         break;
     case enUserMenuOption::DeleteUser:
         break;
