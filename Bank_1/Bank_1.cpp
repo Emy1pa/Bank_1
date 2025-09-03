@@ -34,6 +34,7 @@ struct stUserInfo {
     string Password = "";
     short Permission;
     bool FullAccess = false;
+    bool MarkForDelete = false;
 };
 
 enum enSubMenuOption {
@@ -300,6 +301,7 @@ string ReadClientAccountNumber() {
     cin >> AccountNumber;
     return AccountNumber;
 }
+
 
 void PrintClientFindResult() {
     FindClientHeader();
@@ -969,7 +971,6 @@ stUserInfo ListOfPermissions(stUserInfo UserInfo) {
     return UserInfo;
 }
 
-
 stUserInfo AddNewUserFunc() {
     vector <stUserInfo> vUsers = LoadUsersDataFromFile(UserInfoFileName);
     stUserInfo UserInfo;
@@ -1043,6 +1044,137 @@ void HandleAddNewUser() {
     HandleUserManagement();
 }
 
+void DeleteUserScreen(){
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Delete Users Screen \n";
+    cout << "------------------------------------------\n";
+}
+
+bool FindUserByUserName(string UserName, vector <stUserInfo>& vUsers, stUserInfo& UserInfo) {
+    vUsers = LoadUsersDataFromFile(UserInfoFileName);
+    for (stUserInfo U : vUsers) {
+        if (U.UserName == UserName) {
+            UserInfo = U;
+            return true;
+        }
+    }
+    return false;
+}
+
+void FindUserHeader() {
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Find User Screen \n";
+    cout << "------------------------------------------\n\n";
+}
+
+string ReadUserByUserName() {
+    string UserName = "";
+    cout << "\nPlease enter Username ? ";
+    cin >> UserName;
+    return UserName;
+}
+
+void PrintOneUserRecord(stUserInfo UserInfo) {
+    cout << "\n\nThe following is the extracted user record: \n\n";
+    cout << "------------------------------------------------\n";
+    cout << "User Name  : " << UserInfo.UserName << endl;
+    cout << "Password   : " << UserInfo.Password << endl;
+    cout << "Permission : " << UserInfo.Permission << endl;
+    cout << "------------------------------------------------\n\n";
+
+}
+
+void PrintUserFindResult() {
+    FindUserHeader();
+    stUserInfo UserInfo;
+    vector <stUserInfo> vUsers = LoadUsersDataFromFile(UserInfoFileName);
+    if (vUsers.empty()) {
+        cout << "No Users Available In the System! \n\n";
+        system("pause");
+    }
+    else {
+        string UserName = ReadUserByUserName();
+        if (FindUserByUserName(UserName, vUsers, UserInfo)) {
+            PrintOneUserRecord(UserInfo);
+            system("pause");
+        }
+        else {
+            cout << "\nUser with UserName (" << UserName << ") is NOT Found!\n\n";
+            system("pause");
+        }
+    }
+
+}
+
+bool MarkUserForDeletion(string UserName, vector <stUserInfo>& vUsers) {
+    for (stUserInfo& U : vUsers) {
+        if (U.UserName == UserName) {
+            U.MarkForDelete = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+vector <stUserInfo> SaveUsersDataToFile(string FileName, vector <stUserInfo> vUsers) {
+    fstream MyFile;
+    MyFile.open(FileName, ios::out);
+    string DataLine;
+    if (MyFile.is_open()) {
+        for (stUserInfo& U : vUsers)
+        {
+            if (U.MarkForDelete == false) {
+                DataLine = ConvertUserRecordToLine(U);
+                MyFile << DataLine << endl;
+            }
+        }
+        MyFile.close();
+    }
+    return vUsers;
+}
+
+bool DeleteUserByUserName(string UserName, vector <stUserInfo>& vUsers) {
+
+    stUserInfo UserInfo;
+    char Answer = 'n';
+    if (FindUserByUserName(UserName, vUsers, UserInfo)) {
+        PrintOneUserRecord(UserInfo);
+        cout << "\nAre you sure you want delete user ? (Y/N) ? ";
+        cin >> Answer;
+        if (toupper(Answer) == 'Y') {
+            MarkUserForDeletion(UserName, vUsers);
+            SaveUsersDataToFile(UserInfoFileName, vUsers);
+
+            vUsers = LoadUsersDataFromFile(UserInfoFileName);
+            cout << "\nUser Deleted Successfully. \n";
+            system("pause");
+            return true;
+        }
+
+    }
+    else
+    {
+        cout << "\nUser with UserName (" << UserName << ") is NOT Found!\n\n";
+        system("pause");
+        return false;
+    }
+}
+
+void DeleteUserRecord() {
+    DeleteUserScreen();
+
+    vector <stUserInfo> vUsers = LoadUsersDataFromFile(UserInfoFileName);
+    if (vUsers.empty()) {
+        cout << "No Users Available In the System! \n\n";
+        system("pause");
+    }
+    else {
+        string UserName = ReadUserByUserName();
+        DeleteUserByUserName(UserName, vUsers);
+    }
+}
+
+
 void HandleAdminUserChoice(enUserMenuOption AdminUserMenuChoice) {
     switch (AdminUserMenuChoice)
     {
@@ -1054,10 +1186,16 @@ void HandleAdminUserChoice(enUserMenuOption AdminUserMenuChoice) {
         HandleAddNewUser();
         break;
     case enUserMenuOption::DeleteUser:
+        ResetScreen();
+        DeleteUserRecord();
+        HandleUserManagement();
         break;
     case enUserMenuOption::UpdateUserInfo:
         break;
     case enUserMenuOption::FindUser:
+        ResetScreen();
+        PrintUserFindResult();
+        HandleUserManagement();
         break;
     case enUserMenuOption::MainMenu:
         StartProgram();
