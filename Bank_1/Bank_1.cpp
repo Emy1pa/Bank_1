@@ -63,6 +63,16 @@ enum enUserMenuOption {
     MainMenu = 6,
 };
 
+enum enListOfPermissions {
+    enShowClientList = 1,
+    enAddNewClient = 2,
+    enDeleteClient = 3,
+    enUpdateClient = 4,
+    enFindClient = 5,
+    enHandleTransaction = 6,
+    enManageUsers = 7,
+};
+
 string ConvertRecordToLine(stClientData ClientInfo, string Seperator = "#//#") {
     string stClientRecord = "";
     stClientRecord += ClientInfo.AccountNumber + Seperator;
@@ -584,7 +594,7 @@ void HandleUserChoice(enMainMenuOption UserMenuChoice){
         break;
     case enMainMenuOption::ManageUsers:
         HandleUserManagement();
-
+        break;
     case enMainMenuOption::Logout:
         RedirectUserToMainMenue();
         break;
@@ -620,7 +630,7 @@ void HandleDepositBalanceTotal(string AccountNumber, stClientData &Client) {
         TransactionClient = ReadDepositNumber();
     } while (TransactionClient.Deposit < 0);
 
-    char Answer = 'no';
+    char Answer = 'n';
     cout << "\nAre you sure you want to perform this transaction ? (Y/N) ? ";
     cin >> Answer;
     cout << endl;
@@ -836,7 +846,7 @@ stUserInfo ConvertUserLineToRecord(string Line, string Seperator = "#//#") {
 
     UserInfo.UserName = vUserData[0];
     UserInfo.Password = vUserData[1];
-    UserInfo.Permission = stod(vUserData[2]);
+    UserInfo.Permission = stoi(vUserData[2]);
     return UserInfo;
 }
 
@@ -865,8 +875,7 @@ void LoginScreen() {
 stUserInfo ReadUserInfo() {
     stUserInfo UserInfo;
     cout << "Enter Username ? ";
-    cin.ignore(1, '\n');
-    getline(cin, UserInfo.UserName);
+    getline(cin >> ws, UserInfo.UserName);
     cout << "Enter Password ? ";
     getline(cin, UserInfo.Password);
     
@@ -877,7 +886,11 @@ bool CheckForExistingUser() {
     vector <stUserInfo> vUsers = LoadUsersDataFromFile(UserInfoFileName);
     stUserInfo UserInfo = ReadUserInfo();
     for (stUserInfo &U: vUsers) {
-        if (UserInfo.UserName == U.UserName || UserInfo.Password == U.Password) {
+        cout << UserInfo.UserName << endl;
+        cout << UserInfo.Password << endl;
+        cout << U.UserName << endl;
+        cout << U.Password << endl;
+        if (UserInfo.UserName == U.UserName && UserInfo.Password == U.Password) {
             return true;
         }
     }
@@ -922,6 +935,41 @@ void HandleAddNewUserScreen(){
     cout << "Adding New User: \n";
 }
 
+stUserInfo ListOfPermissions(stUserInfo UserInfo) {
+    char GivePermission = 'n';
+    cout << "\nShow Client List ? (Y/N) ? ";
+    cin >> GivePermission;
+    if (toupper(GivePermission) == 'Y')
+        UserInfo.Permission |= (1 << (enShowClientList - 1));
+
+    cout << "\nAdd New Client ? (Y/N) ? ";
+    cin >> GivePermission;
+    if (toupper(GivePermission) == 'Y')
+        UserInfo.Permission |= (1 << (enAddNewClient - 1));
+    cout << "\nDelete Client List ? (Y/N) ? ";
+    cin >> GivePermission;
+    if (toupper(GivePermission) == 'Y')
+        UserInfo.Permission |= (1 << (enDeleteClient - 1));
+    cout << "\nUpdate Client ? (Y/N) ? ";
+    cin >> GivePermission;
+    if (toupper(GivePermission) == 'Y')
+        UserInfo.Permission |= (1 << (enUpdateClient - 1));
+    cout << "\nFind Client ? (Y/N) ? ";
+    cin >> GivePermission;
+    if (toupper(GivePermission) == 'Y')
+        UserInfo.Permission |= (1 << (enFindClient - 1));
+    cout << "\nTranscations ? (Y/N) ? ";
+    cin >> GivePermission;
+    if (toupper(GivePermission) == 'Y')
+        UserInfo.Permission |= (1 << (enHandleTransaction - 1));
+    cout << "\nManage Users ? (Y/N) ? ";
+    cin >> GivePermission;
+    if (toupper(GivePermission) == 'Y')
+        UserInfo.Permission |= (1 << (enManageUsers - 1));
+    return UserInfo;
+}
+
+
 stUserInfo AddNewUserFunc() {
     vector <stUserInfo> vUsers = LoadUsersDataFromFile(UserInfoFileName);
     stUserInfo UserInfo;
@@ -947,11 +995,17 @@ stUserInfo AddNewUserFunc() {
     getline(cin, UserInfo.Password);
     cout << "\nDo you want to give full access? (1/0) ? ";
     cin >> UserInfo.FullAccess;
+    UserInfo.Permission = 0;
     if (UserInfo.FullAccess)
         UserInfo.Permission = -1;
+    else {
+        cout << "What do you want to give acces to: \n";
+        UserInfo = ListOfPermissions(UserInfo);
+    }
     cout << "****************************\n";
     return UserInfo;
 }
+
 
 string ConvertUserRecordToLine(stUserInfo UserInfo, string Seperator = "#//#") {
     string stUserRecord = "";
@@ -971,6 +1025,8 @@ void AddNewUsers() {
     char AddMore = 'Y';
     do
     {
+        ResetScreen();
+        HandleAddNewUserScreen();
         AddNewUserFunction();
         cout << "\nUser Added Successfully, do you want to add more users ? (Y/N) ? ";
         cin >> AddMore;
