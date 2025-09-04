@@ -1180,7 +1180,7 @@ bool DeleteUserByUserName(string UserName, vector <stUserInfo>& vUsers) {
     char Answer = 'n';
     if (FindUserByUserName(UserName, vUsers, UserInfo)) {
         if (UserName == "Admin") {
-            cout << "\nYou Can't Delete This User\n\n";
+            cout << "You Can't Delete This User\n";
             system("pause");
         }
         else {
