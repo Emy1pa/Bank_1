@@ -302,7 +302,6 @@ string ReadClientAccountNumber() {
     return AccountNumber;
 }
 
-
 void PrintClientFindResult() {
     FindClientHeader();
     stClientData Client;
@@ -1007,7 +1006,6 @@ stUserInfo AddNewUserFunc() {
     return UserInfo;
 }
 
-
 string ConvertUserRecordToLine(stUserInfo UserInfo, string Seperator = "#//#") {
     string stUserRecord = "";
     stUserRecord += UserInfo.UserName + Seperator;
@@ -1174,6 +1172,77 @@ void DeleteUserRecord() {
     }
 }
 
+void UpdateUserInfoScreen() {
+    cout << "\n------------------------------------------\n";
+    cout << "\t     Update User Info Screen \n";
+    cout << "------------------------------------------\n\n";
+}
+
+stUserInfo ChangeUserRecord(string UserName) {
+    stUserInfo UserInfo;
+
+    UserInfo.UserName = UserName;
+
+    cout << "Enter Password ? ";
+    getline(cin >> ws, UserInfo.Password);
+    cout << "\nDo you want to give full access ? (1/0) ? ";
+    cin >> UserInfo.FullAccess;
+    UserInfo.Permission = 0;
+    if (UserInfo.FullAccess)
+        UserInfo.Permission = -1;
+    else {
+        cout << "\nWhat do you want to give acces to: \n";
+        UserInfo = ListOfPermissions(UserInfo);
+    }
+    
+    return UserInfo;
+}
+
+bool UpdateUserByUserName(string UserName, vector <stUserInfo>& vUsers) {
+    stUserInfo UserInfo;
+    char Answer = 'n';
+    if (FindUserByUserName(UserName, vUsers, UserInfo)) {
+        PrintOneUserRecord(UserInfo);
+        cout << "\n\nAre you sure you want update this user ? (Y/N) ? ";
+        cin >> Answer;
+        cout << endl;
+        if (toupper(Answer) == 'Y') {
+            for (stUserInfo& U : vUsers) {
+                if (U.UserName == UserName) {
+                    U = ChangeUserRecord(UserName);
+                    break;
+                }
+            }
+            SaveUsersDataToFile(UserInfoFileName, vUsers);
+            vUsers = LoadUsersDataFromFile(UserInfoFileName);
+            cout << "\n\nUser Updated Successfully. \n\n";
+            system("pause");
+            return true;
+        }
+
+    }
+    else {
+        cout << "\nUser with UserName (" << UserName << ") is NOT Found!\n\n";
+        system("pause");
+        return false;
+    }
+
+}
+
+void UpdateUserRecord() {
+    UpdateUserInfoScreen();
+
+    vector <stUserInfo> vUsers = LoadUsersDataFromFile(UserInfoFileName);
+    if (vUsers.empty()) {
+        cout << "No Users Available In the System! \n\n";
+        system("pause");
+    }
+    else {
+        string UserName = ReadUserByUserName();
+        UpdateUserByUserName(UserName, vUsers);
+    }
+
+}
 
 void HandleAdminUserChoice(enUserMenuOption AdminUserMenuChoice) {
     switch (AdminUserMenuChoice)
@@ -1191,6 +1260,9 @@ void HandleAdminUserChoice(enUserMenuOption AdminUserMenuChoice) {
         HandleUserManagement();
         break;
     case enUserMenuOption::UpdateUserInfo:
+        ResetScreen();
+        UpdateUserRecord();
+        HandleUserManagement();
         break;
     case enUserMenuOption::FindUser:
         ResetScreen();
